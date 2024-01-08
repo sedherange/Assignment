@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unique Product Display</title>
+    <style>
+        table {
+            margin: auto;
+            text-align: center;
+        }
+
+        th {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">Product Showcase</h1>
+    <div id="productDisplay"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const productsApiUrl = "https://s3.amazonaws.com/open-to-cors/assignment.json";
+
+            fetch(productsApiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const productList = processData(data);
+                    renderProductTable(productList);
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        });
+
+        function processData(data) {
+            const products = data.products;
+            const productArray = Object.keys(products).map(key => products[key]);
+            return productArray.sort((a, b) => {
+                const popularityDiff = parseInt(b.popularity) - parseInt(a.popularity);
+                return popularityDiff !== 0 ? popularityDiff : parseInt(b.price) - parseInt(a.price);
+            });
+        }
+
+        function renderProductTable(products) {
+            const productDisplayDiv = document.getElementById('productDisplay');
+            const table = document.createElement('table');
+            table.border = '1';
+
+            // Create table header
+            const headerRow = table.insertRow(0);
+            const headerCells = ['Product Name', 'Price', 'Popularity'];
+            headerCells.forEach(cellText => {
+                const cell = headerRow.insertCell();
+                cell.appendChild(document.createTextNode(cellText));
+            });
+
+            // Make the header cells bold
+            const headerCellsCollection = headerRow.cells;
+            for (let i = 0; i < headerCellsCollection.length; i++) {
+                headerCellsCollection[i].style.fontWeight = 'bold';
+            }
+
+            // Create table rows
+            products.forEach(product => {
+                const row = table.insertRow();
+                const nameCell = row.insertCell();
+                const priceCell = row.insertCell();
+                const popularityCell = row.insertCell();
+
+                nameCell.textContent = product.title;
+                priceCell.textContent = product.price;
+                popularityCell.textContent = product.popularity;
+            });
+
+            // Append the table to the productDisplayDiv
+            productDisplayDiv.appendChild(table);
+        }
+    </script>
+</body>
+</html>
